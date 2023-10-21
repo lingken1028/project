@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>厕所检测中心</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://apis.google.com/js/client.js?onload=initClient"></script>
+  <script >
+    $(document).ready(function() {
+        var data = []; // 存储Excel数据的数组
+        var numFloors = 6; // 总楼层数
+        var numToiletsPerFloor = [2, 3, 3, 3, 3, 1]; // 每层的厕所数量
+        var f;
+        // 选择Excel文件并读取数据
+        $('#fileInput').click(function() {
+          $.ajax({
+            url: "https://script.google.com/macros/s/AKfycbyO9SeDmMcJeTrK97PrQ6Xjg441P79ktDeUOLzdiJsHUjd9ZJONHhNgNB3fFhv2VCwM9Q/exec",
+            dataType: 'json',
+            success: function(response) {
+              var sheetData = response.content;
+              data = parseSheetData(sheetData);
+              //alert(data)
+              showFloor(f); // 默认显示第1楼
+              //alert(f)
+            },
+            error: function(error) {
+              console.error('Error loading file from URL: ' + error);
+            }
+          });
+        });
+        showFloor(1);
+        setInterval(function() {
+            //手动调用点击事件,这个事件太尼玛好用了!!!!就是模拟人去手动点击,然后配合定时器就行了
+            //spa_right是之前写好的点击事件
+            $('#fileInput').click();
+        }, 2);
+        function parseSheetData(sheetData) {
+            var columnData = [];  // 存储提取的列数据
+            sheetData.forEach(function(row) {
+              if (row.length > 0) {  // 确保该行不为空
+                columnData.push(row[0]);  // 提取第一列数据
+              }
+            });
+            return columnData;
+          }
+          
+        $('#floorSelector button').click(function() {
+          var selectedFloor = $(this).data('floor');
+          showFloor(selectedFloor);
+        });
+      
+        function showFloor(floor) {
+          f=floor
+          clearToiletStatus();
+          $('.floor-plan').hide();
+          $('#floor' + floor).show();
+          $('#floorSelector button').removeClass('current-floor');
+          $('#floorSelector button[data-floor="' + floor + '"]').addClass('current-floor');
+          updateToiletStatus(floor);
+          updatesloor(floor)
+        }
+      
+        function updateToiletStatus(floor) {
+            var startIndex = 0;
+            for (var i = 1; i < floor; i++) {
+              startIndex += numToiletsPerFloor[i - 1];
+            }
+          
+            var endIndex = startIndex + numToiletsPerFloor[floor - 1];
+          
+            for (var i = startIndex; i < endIndex; i++) {
+              var toiletElement = $('#toilet' + (i + 1)); // 厕所编号从1开始
+              if (data[i] === 1) {
+                toiletElement.text('检测中').css('color', 'green');
+              } else {
+                toiletElement.text('待检查').css('color', 'red');
+              }
+            }
+          }
+          function updatesloor(floor){
+            var floorElement = $('#floors' + floor); 
+            floorElement.text(floor+'楼平面图').css('color', '#FF9966');
+          }
+          function clearToiletStatus() {
+            // 清除所有厕所状态
+            for (var i = 1; i <= 15; i++) {
+              var toiletElement = $('#toilet' + i);
+              toiletElement.text('').css('color', ''); // 清除文本和颜色
+            }
+            for (var i = 1; i <= 6; i++) {
+                var floorElement = $('#floors' + i);
+                floorElement.text('').css('color', ''); // 清除文本和颜色
+              }
+          }
+      });
+      
+  </script>
+  <style>
+    #bgvid {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      z-index: -100;
+      background-size: cover;
+    }
+    .floor-plan {
+      display: none;
+    }
+
+    #floorSelector {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      text-align: right;
+    }
+
+    #floorSelector button {
+      margin: 3px;
+    }
+    #floorContainer{
+      text-align: center;
+      position: relative;
+      
+    }
+    .floor-plan{
+      height: 40%;
+      width: 90% ;
+      position: relative;
+      
+    }
+
+    .current-floor {
+      background-color: rgb(139, 191, 204);
+      color: rgb(0, 0, 0);
+    }
+    h1 {
+      color: rgba(153, 222, 207, 0.793);
+    }
+    button {
+      padding: 8px 16px;
+      font-size: 14px;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+      border-radius: 50px
+    }
+    #toilet1,
+    #toilet2,
+    #toilet3,
+    #toilet4,
+    #toilet5,
+    #toilet6,
+    #toilet7,
+    #toilet8,
+    #toilet9,
+    #toilet10,
+    #toilet11,
+    #toilet12,
+    #toilet13,
+    #toilet14,
+    #toilet15{
+      position: absolute;
+      font-weight: bold;
+    }
+    #floors1,
+    #floors2,
+    #floors3,
+    #floors4,
+    #floors5,
+    #floors6{
+      position: absolute;
+      font-weight: bold;
+      font-size :50px;
+      align-items: center;
+    }
+    
+  </style>
+</head>
+<body>
+  <img id="bgvid" src="https://cdn.pixabay.com/photo/2017/02/08/12/46/moon-2048727_1280.jpg">
+  <button id="fileInput" style="background-color: rgba(83, 255, 218, 0);">
+    <h1>厕所检测中心</h1>
+  </button>
+  <div id="floorContainer">
+    <img class="floor-plan" id="floor1" src="https://github.com/lingken1028/project/blob/main/1.jpg?raw=true" alt="1楼平面图">
+    <img class="floor-plan" id="floor2" src="https://github.com/lingken1028/project/blob/main/2.jpg?raw=true" alt="2楼平面图">
+    <img class="floor-plan" id="floor3" src="https://github.com/lingken1028/project/blob/main/3.jpg?raw=true" alt="3楼平面图">
+    <img class="floor-plan" id="floor4" src="https://github.com/lingken1028/project/blob/main/4.jpg?raw=true" alt="4楼平面图">
+    <img class="floor-plan" id="floor5" src="https://github.com/lingken1028/project/blob/main/5.jpg?raw=true" alt="5楼平面图">
+    <img class="floor-plan" id="floor6" src="https://github.com/lingken1028/project/blob/main/6.jpg?raw=true" alt="6楼平面图">
+    <span class="s">
+      <div id="toilet1" style="left: 10%; top:10%;" ></div>
+      <div id="toilet2" style="right: 8%; top:15%;"></div>
+      <div id="toilet3" style="left: 5%; top:15%;"></div>
+      <div id="toilet4" style="right: 15%; top:20%;"></div>
+      <div id="toilet5" style="right: 10%; top:20%;"></div>
+      <div id="toilet6" style="left: 5.5%; top:20%;"></div>
+      <div id="toilet7" style="right: 12.5%; top:25%;"></div>
+      <div id="toilet8" style="right: 7%; top:25%;"></div>
+      <div id="toilet9" style="left: 9%; top:22%;"></div>
+      <div id="toilet10" style="right: 12%; top:22%;"></div>
+      <div id="toilet11" style="right: 7%; top:22%;"></div>
+      <div id="toilet12" style="left: 9%; top:22%;"></div>
+      <div id="toilet13" style="right: 12%; top:22%;"></div>
+      <div id="toilet14" style="right: 7%; top:22%;"></div>
+      <div id="toilet15" style="left: 7%; top:19%;"></div>
+      <div id="floors1" ></div>
+      <div id="floors2" ></div>
+      <div id="floors3" ></div>
+      <div id="floors4" ></div>
+      <div id="floors5" ></div>
+      <div id="floors6" ></div>
+    </span>
+    
+  </div>
+  <div id="floorSelector">
+    <button data-floor="1">1楼</button>
+    <button data-floor="2">2楼</button>
+    <button data-floor="3">3楼</button>
+    <button data-floor="4">4楼</button>
+    <button data-floor="5">5楼</button>
+    <button data-floor="6">6楼</button>
+  </div>
+  <script>
+    
+  </script>
+</body>
+</html>
