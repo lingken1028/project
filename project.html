@@ -17,6 +17,7 @@
       var numFloors = 6; // 总楼层数
       var numToiletsPerFloor = [2, 3, 3, 3, 3, 1]; // 每层的厕所数量
       var f;
+      var fa = f; 
       // 选择Excel文件并读取数据
       $('#fileInput').click(function() {
         $.ajax({
@@ -98,8 +99,10 @@
       
        
       $('#floorSelector button').click(function() {
+        a=0;
         var selectedFloor = $(this).data('floor');
         showFloor(selectedFloor);
+        fa=f;
       });
     
       function showFloor(floor) {
@@ -130,7 +133,7 @@
                 toiletElement.text('--满--').css('color', 'black').css('background-color', 'rgba(188, 241, 203, 0.8)').css('padding', '5px');
               }
               else if (data[i] ==2){
-                toiletElement.text('--中--').css('color', 'black').css('background-color', 'rgba(188, 204, 241, 0.8)').css('padding', '5px');
+                toiletElement.text('--中--').css('color', 'black').css('background-color', 'rgba(188, 233, 241, 0.8)').css('padding', '5px');
               }
               else if (data[i] ==3){
                 toiletElement.text('--低--').css('color', 'black').css('background-color', 'rgba(241, 188, 238, 0.8)').css('padding', '5px');
@@ -147,7 +150,7 @@
       }
         function updatesloor(floor){
           var floorElement = $('#floors' + floor); 
-          floorElement.text(floor+'楼平面图').css('color', '#FF9966');
+          floorElement.text(floor+'楼平面图').css('color', '#FF9966')
         }
         function clearToiletStatus() {
           // 清除所有厕所状态
@@ -199,6 +202,23 @@
             }
           }
         }
+        var a=0;
+        $(document).ready(function() {
+          if(a==0) fa = f; // 默认选定的楼层为1楼
+        
+          // 当鼠标悬停在楼层按钮上时
+          $('#floorSelector button').hover(
+            function() {
+              a=1;
+              var selectedFloor = $(this).data('floor'); // 更新选定的楼层
+              showFloor(selectedFloor); // 显示相应楼层的内容
+            },
+            function() {
+              showFloor(fa); // 鼠标移出时恢复选定的楼层内容
+              a=0;
+            }
+          );
+        });
         
         
     });
@@ -221,26 +241,25 @@
     }
 
     #floorSelector {
-      position: fixed;
+      position:fixed;
       bottom: 10px;
-      right: 10%;
+      right: 20%;
+      top: 85%;
     }
 
     #floorSelector button {
       margin: 3px;
       padding: 16px 32px;
-      font-size: 18px;
+      font-size: 25px;
     }
     #floorContainer{
       text-align: center;
-      position: relative;
-      
+      position:relative;
     }
     .floor-plan{
       height: 40%;
       width: 83% ;
       position: relative;
-      
     }
     .current-floor {
       background-color: rgb(139, 191, 204);
@@ -255,7 +274,7 @@
     }
     a{
       color: rgba(188, 140, 140, 1);
-      font-size: 5%;
+      
     }
     #announcement{
       background-color: rgba(217, 225, 227, 0.492);
@@ -272,13 +291,11 @@
       width: 70%; 
       height: 50px; 
       overflow: auto; 
-      
     }
     #announcementText {
       margin-left: 8%;
-       list-style-type: none; /* 移除列表项的样式 */
-       overflow-x: scroll; /* 显示垂直方向的滚动条 */
-      /* height: 90%; /* 设置高度为容器的100% */
+      overflow-y: scroll; /* 显示垂直方向的滚动条 */
+       height: 99%; /* 设置高度为容器的100% */
        box-sizing:content-box /* 确保高度包含内边距和边框 */
     }
     ::-webkit-scrollbar {
@@ -286,11 +303,11 @@
     }
     button {
       padding: 8px 16px;
-      color: white;
       border: none;
       cursor: pointer;
       margin-top: 5px;
-      border-radius: 50px
+      border-radius: 50px;
+      background-color: rgba(179, 112, 196, 0.492);
     }
     #i{
       display: flex; /* 或者使用 display: inline-block; */
@@ -300,6 +317,16 @@
     }
     #img{
       background-color: transparent;
+    }
+    #button12 button{
+      margin-left: 10px;
+    }
+    #button12 {
+      
+      margin-top: 10%;
+      margin-left: 10px; 
+      font-size:25px;
+      border-radius: 25px
     }
     #toilet1,
     #toilet2,
@@ -339,7 +366,7 @@
     <h1>厕所检测中心</h1>
   </button>
   <div id="announcement">
-    <marquee id="announcementText" direction="up" behavior="scroll" scrollamount="10">
+    <marquee id="announcementText" direction="up" behavior="scroll" scrollamount="2">
       <!-- 这里将显示公告 -->
     </marquee>
     <div id="i">
@@ -348,11 +375,17 @@
   </div>
   <div id="a1">
     <a >卫生纸状态颜色</a><br>
-    <a >100%-70%<button style="background-color:rgba(188, 241, 203, 0.8); padding-bottom:1px;margin-left: 10px; "></button></a><br>
-    <a>70%-30%<button style="background-color:rgba(188, 204, 241, 0.8);padding-bottom:1px;margin-left: 10px; "></button></a><br>
-    <a>30%-10%<button style="background-color:rgba(241, 188, 238, 0.8);padding-bottom:1px;margin-left: 10px; "></button></a><br>
-    <a>10%-0%<button style="background-color:rgba(255, 0, 0, 0.5);padding-bottom:1px;margin-left: 10px; "></button></a><br>
-    <a>故障<button style="background-color:rgba(128, 128, 128, 0.5);padding-bottom:1px;margin-left: 10px; "></button></a>
+    <br>
+    <a >10成以下</a><br>
+    <div id="button12" style="background-color:rgba(188, 241, 203, 1); "><button style="background-color:rgba(188, 241, 203, 1); "></button></div><br>
+    <a>7成以下</a><br>
+    <div id="button12" style="background-color:rgba(188, 204, 241, 1); "><button style="background-color:rgba(188, 204, 241, 1); "></button></div><br>
+    <a>3成以下</a><br>
+    <div id="button12" style="background-color:rgba(241, 188, 238, 1); "><button style="background-color:rgba(241, 188, 238, 1); "></button></div><br>
+    <a>1成以下</a><br>
+    <div id="button12" style="background-color:rgba(255, 0, 0, 1); "><button style="background-color:rgba(255, 0, 0, 1);"></button></div><br>
+    <a>故障</a>
+    <div id="button12" style="background-color:rgba(128, 128, 128, 1);"><button style="background-color:rgba(128, 128, 128, 1);"></button></div><br>
   </div>
   
   
