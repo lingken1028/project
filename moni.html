@@ -78,6 +78,9 @@
     // 函数:随机更改选定数据
     function randomizeData(index) {
       var randomNum = Math.floor(Math.random() * 4); // 生成0到3的随机数字
+      while (randomNum === data[index]) {
+        randomNum = Math.floor(Math.random() * 4);
+      }
       data[index] = randomNum; // 更改数据
     
       // 获取当前日期和时间
