@@ -224,7 +224,13 @@
     });
     
   </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    body {
+      margin: 0;
+      padding: 0;
+      /* 其他全局样式 */
+    }
     #bgvid {
       position: fixed;
       right: 0;
@@ -271,7 +277,6 @@
     #a1{
       position: absolute;
       float: left;
-      top:40%;
     }
     a{
       color: rgba(188, 140, 140, 1);
@@ -288,7 +293,7 @@
     #announcement {
       position: fixed; 
       top: 20px; 
-      right: 8%; 
+      right: 10%; 
       width: 70%; 
       height: 50px; 
       overflow: auto; 
@@ -312,9 +317,9 @@
     }
     #i{
       display: flex; /* 或者使用 display: inline-block; */
+      top: 4%;
       position: fixed;
-      left: 23%;
-      top:4%;
+      left: 20%;
     }
     #img{
       background-color: transparent;
@@ -358,6 +363,7 @@
       font-size :50px;
       align-items: center;
     }
+    
   </style>
 </head>
 <body>
@@ -373,7 +379,20 @@
       <img width="50px" height="50px" src="https://github.com/lingken1028/project/blob/main/laba.png?raw=true">
     </div>
   </div>
-  
+  <div id="a1">
+    <a >卫生纸状态颜色</a><br>
+    <br>
+    <a >10成以下</a><br>
+    <div id="button12" style="background-color:rgba(188, 241, 203, 1); "><button style="background-color:rgba(188, 241, 203, 1); "></button></div><br>
+    <a>7成以下</a><br>
+    <div id="button12" style="background-color:rgba(188, 204, 241, 1); "><button style="background-color:rgba(188, 204, 241, 1); "></button></div><br>
+    <a>3成以下</a><br>
+    <div id="button12" style="background-color:rgba(241, 188, 238, 1); "><button style="background-color:rgba(241, 188, 238, 1); "></button></div><br>
+    <a>1成以下</a><br>
+    <div id="button12" style="background-color:rgba(255, 0, 0, 1); "><button style="background-color:rgba(255, 0, 0, 1);"></button></div><br>
+    <a>故障</a>
+    <div id="button12" style="background-color:rgba(128, 128, 128, 1);"><button style="background-color:rgba(128, 128, 128, 1);"></button></div><br>
+  </div>
   
   
   <div id="floorContainer">
@@ -407,20 +426,6 @@
       <div id="floors6" ></div>
     </span>
     
-  </div>
-  <div id="a1">
-    <a >卫生纸状态颜色</a><br>
-    <br>
-    <a >10成以下</a><br>
-    <div id="button12" style="background-color:rgba(188, 241, 203, 1); "><button style="background-color:rgba(188, 241, 203, 1); "></button></div><br>
-    <a>7成以下</a><br>
-    <div id="button12" style="background-color:rgba(188, 204, 241, 1); "><button style="background-color:rgba(188, 204, 241, 1); "></button></div><br>
-    <a>3成以下</a><br>
-    <div id="button12" style="background-color:rgba(241, 188, 238, 1); "><button style="background-color:rgba(241, 188, 238, 1); "></button></div><br>
-    <a>1成以下</a><br>
-    <div id="button12" style="background-color:rgba(255, 0, 0, 1); "><button style="background-color:rgba(255, 0, 0, 1);"></button></div><br>
-    <a>故障</a>
-    <div id="button12" style="background-color:rgba(128, 128, 128, 1);"><button style="background-color:rgba(128, 128, 128, 1);"></button></div><br>
   </div>
   <div id="floorSelector">
     <button data-floor="1">1楼</button>
