@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>厕所检测中心</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://apis.google.com/js/client.js?onload=initClient"></script>
+  <script >
+    $(document).ready(function() {
+      var data = []; // 存储Excel数据的数组
+      var data1 =[];
+      var data2 =[];
+      var checkdata=[]
+      var numFloors = 6; // 总楼层数
+      var numToiletsPerFloor = [2, 3, 3, 3, 3, 1]; // 每层的厕所数量
+      var f;
+      var fa = f; 
+      // 选择Excel文件并读取数据
+      $('#fileInput').click(function() {
+        $.ajax({
+          url: "https://script.google.com/macros/s/AKfycbyO9SeDmMcJeTrK97PrQ6Xjg441P79ktDeUOLzdiJsHUjd9ZJONHhNgNB3fFhv2VCwM9Q/exec",
+          dataType: 'json',
+          success: function(response) {
+            var sheetData = response.content;
+            data = parseSheetData(sheetData);
+            //alert(data)
+            checktime()
+            //alert(checkdata)
+            showFloor(f); // 默认显示第1楼
+            //alert(f)
+          },
+          error: function(error) {
+            console.error('Error loading file from URL: ' + error);
+          }
+        });
+      });
+      showFloor(1);
+      setInterval(function() {
+          //手动调用点击事件,这个事件太尼玛好用了!!!!就是模拟人去手动点击,然后配合定时器就行了
+          //spa_right是之前写好的点击事件
+          $('#fileInput').click();
+          updateAnnouncement();
+      }, 2);
+      function parseSheetData(sheetData) {
+          var columnData = [];  // 存储提取的列数据
+          var a=[];
+          var b=[]
+          for (var i = 0; i < sheetData.length; i++) {
+            var row = sheetData[i];
+            columnData.push(row[0]); 
+            a.push(row[1]); 
+            b.push(row[2]); 
+          }
+          data1=a;
+          data2=b;
+          return columnData;
+        }
+        function checktime() {
+          var a=[]
+          var currentDate = new Date();
+          var currentDateString = currentDate.toLocaleDateString();
+          var currentTimeString = currentDate.toLocaleTimeString();
+          
+          var currentDateArray = currentDateString.split('/');
+          var currentTimeArray = currentTimeString.split(':');
+  
+          var currentYear = parseInt(currentDateArray[0]);
+          var currentMonth = parseInt(currentDateArray[1]);
+          var currentDay = parseInt(currentDateArray[2]);
+          var currentHour = parseInt(currentTimeArray[0]);
+          var currentMinute = parseInt(currentTimeArray[1]);
+          var currentSecond = parseInt(currentTimeArray[2]);
+      
+          for (var i = 0; i < data1.length; i++) {
+              var data1Array = data1[i].split('/');
+              var data2Array = data2[i].split(':');
+      
+              var dataYear = parseInt(data1Array[0]);
+              var dataMonth = parseInt(data1Array[1]);
+              var dataDay = parseInt(data1Array[2]);
+              var dataHour = parseInt(data2Array[0]);
+              var dataMinute = parseInt(data2Array[1]);
+              var dataSecond = parseInt(data2Array[2]);
+              
+              var timeDifference = Math.abs(currentDate.getTime() - new Date(dataYear, dataMonth - 1, dataDay, dataHour, dataMinute, dataSecond).getTime());
+              if (currentYear === dataYear && currentMonth === dataMonth && currentDay === dataDay && timeDifference <= 30 * 60 * 1000) {
+                  a.push(1)
+                  //alert("日期和时间相差不超过30分钟(索引 " + i + ")");
+              }else {
+                  a.push(0)
+                  //alert("日期或时间相差超过30分钟(索引 " + i + ")");
+              }
+          }
+          checkdata=a;
+      }
+      
+       
+      $('#floorSelector button').click(function() {
+        a=0;
+        var selectedFloor = $(this).data('floor');
+        showFloor(selectedFloor);
+        fa=f;
+      });
+    
+      function showFloor(floor) {
+        f=floor
+        clearToiletStatus();
+        $('.floor-plan').hide();
+        $('#floor' + floor).show();
+        $('#floorSelector button').removeClass('current-floor');
+        $('#floorSelector button[data-floor="' + floor + '"]').addClass('current-floor');
+        updateToiletStatus(floor);
+        updatesloor(floor)
+      }
+    
+      function updateToiletStatus(floor) {
+        var startIndex = 0;
+        for (var i = 1; i < floor; i++) {
+          startIndex += numToiletsPerFloor[i - 1];
+        }
+      
+        var endIndex = startIndex + numToiletsPerFloor[floor - 1];
+        
+        for (var i = startIndex; i < endIndex; i++) {
+          var toiletElement = $('#toilet' + (i + 1)); // 厕所编号从1开始
+          
+          if(checkdata[i]===1){
+            if (data[i] !=0.0) {
+              if(data[i] ==1){
+                toiletElement.text('--满--').css('color', 'black').css('background-color', 'rgba(188, 241, 203, 0.8)').css('padding', '5px');
+              }
+              else if (data[i] ==2){
+                toiletElement.text('--中--').css('color', 'black').css('background-color', 'rgba(188, 233, 241, 0.8)').css('padding', '5px');
+              }
+              else if (data[i] ==3){
+                toiletElement.text('--低--').css('color', 'black').css('background-color', 'rgba(241, 188, 238, 0.8)').css('padding', '5px');
+              }
+            } else {
+              
+              toiletElement.text('--完--').css('color', 'black').css('background-color', 'rgba(255, 0, 0, 0.5)').css('padding', '5px');
+            }
+          }
+          else{
+            toiletElement.text('故障').css('color', 'gray').css('background-color', 'rgba(128, 128, 128, 0.5)').css('padding', '5px');
+          }
+        }
+      }
+        function updatesloor(floor){
+          var floorElement = $('#floors' + floor); 
+          floorElement.text(floor+'楼平面图').css('color', '#FF9966')
+        }
+        function clearToiletStatus() {
+          // 清除所有厕所状态
+          for (var i = 1; i <= 15; i++) {
+            var toiletElement = $('#toilet' + i);
+            toiletElement.text('').css('color', '').css('background-color', ''); // 清除文本和颜色
+          }
+          for (var i = 1; i <= 6; i++) {
+              var floorElement = $('#floors' + i);
+              floorElement.text('').css('color', '').css('background-color', ''); // 清除文本和颜色
+            }
+        }
+        function updateAnnouncement() {
+          var announcementText = $('#announcementText');
+          announcementText.empty(); // 清空原有的公告
+        
+          for (var i = 0; i < numFloors; i++) {
+            var floorToilets = numToiletsPerFloor[i];
+            var startIndex = i === 0 ? 0 : numToiletsPerFloor.slice(0, i).reduce((acc, curr) => acc + curr, 0);
+            var floorHasIssue = false;
+            var floorMessage = '';
+        
+            for (var j = 0; j < floorToilets; j++) {
+              var toiletIndex = startIndex + j;
+              var toiletStatus = data[toiletIndex];
+              var statusMessage =  '';
+        
+              if (checkdata[toiletIndex] === 0) {
+                floorHasIssue = true;
+                statusMessage ='第 ' + (j + 1) + ' 号厕所故障';
+              } else {
+                if (toiletStatus === 0.0) {
+                  floorHasIssue = true;
+                  statusMessage = '第 ' + (j + 1) + ' 号厕所用完';
+                }
+              }
+        
+              if (statusMessage !== '') {
+                if (floorMessage !== '') {
+                  floorMessage += ' '; // 每条消息换行显示
+                }
+                floorMessage += statusMessage;
+              }
+            }
+        
+            if (floorHasIssue) {
+              var listItem = $('<div></div>').html((i + 1) + ' 楼 '+floorMessage);
+              announcementText.append(listItem); // 将楼层消息添加到公告栏
+            }
+          }
+        }
+        var a=0;
+        $(document).ready(function() {
+          if(a==0) fa = f; // 默认选定的楼层为1楼
+        
+          // 当鼠标悬停在楼层按钮上时
+          $('#floorSelector button').hover(
+            function() {
+              a=1;
+              var selectedFloor = $(this).data('floor'); // 更新选定的楼层
+              showFloor(selectedFloor); // 显示相应楼层的内容
+            },
+            function() {
+              showFloor(fa); // 鼠标移出时恢复选定的楼层内容
+              a=0;
+            }
+          );
+        });
+        
+        
+    });
+    
+  </script>
+  <style>
+    #bgvid {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      z-index: -100;
+      background-size: cover;
+    }
+    .floor-plan {
+      display: none;
+    }
+
+    #floorSelector {
+      position:fixed;
+      bottom: 10px;
+      right: 20%;
+      top: 85%;
+    }
+
+    #floorSelector button {
+      margin: 3px;
+      padding: 16px 32px;
+      font-size: 25px;
+    }
+    #floorContainer{
+      text-align: center;
+      position:relative;
+    }
+    .floor-plan{
+      height: 40%;
+      width: 83% ;
+      position: relative;
+    }
+    .current-floor {
+      background-color: rgb(139, 191, 204);
+      color: rgb(0, 0, 0);
+    }
+    h1 {
+      color: rgba(153, 222, 207, 0.793);
+    }
+    #a1{
+      position: absolute;
+      float: left;
+    }
+    a{
+      color: rgba(188, 140, 140, 1);
+      
+    }
+    #announcement{
+      background-color: rgba(217, 225, 227, 0.492);
+      color: rgba(153, 222, 207, 0.793);
+      font-size: 30px;
+      padding: 8px 16px;
+      border-radius: 50px;
+      line-height:55px;
+    }
+    #announcement {
+      position: fixed; 
+      top: 20px; 
+      right: 8%; 
+      width: 70%; 
+      height: 50px; 
+      overflow: auto; 
+    }
+    #announcementText {
+      margin-left: 8%;
+      overflow-y: scroll; /* 显示垂直方向的滚动条 */
+       height: 99%; /* 设置高度为容器的100% */
+       box-sizing:content-box /* 确保高度包含内边距和边框 */
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    button {
+      padding: 8px 16px;
+      border: none;
+      cursor: pointer;
+      margin-top: 5px;
+      border-radius: 50px;
+      background-color: rgba(179, 112, 196, 0.492);
+    }
+    #i{
+      display: flex; /* 或者使用 display: inline-block; */
+      top: 4%;
+      position: fixed;
+      left: 20%;
+    }
+    #img{
+      background-color: transparent;
+    }
+    #button12 button{
+      margin-left: 10px;
+    }
+    #button12 {
+      
+      margin-top: 10%;
+      margin-left: 10px; 
+      font-size:25px;
+      border-radius: 25px
+    }
+    #toilet1,
+    #toilet2,
+    #toilet3,
+    #toilet4,
+    #toilet5,
+    #toilet6,
+    #toilet7,
+    #toilet8,
+    #toilet9,
+    #toilet10,
+    #toilet11,
+    #toilet12,
+    #toilet13,
+    #toilet14,
+    #toilet15{
+      position: absolute;
+      font-weight: bold;
+    }
+    #floors1,
+    #floors2,
+    #floors3,
+    #floors4,
+    #floors5,
+    #floors6{
+      position: absolute;
+      font-weight: bold;
+      font-size :50px;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <img id="bgvid" src="https://cdn.pixabay.com/photo/2017/02/08/12/46/moon-2048727_1280.jpg">
+  <button id="fileInput" style="background-color: rgba(83, 255, 218, 0);">
+    <h1>厕所检测中心</h1>
+  </button>
+  <div id="announcement">
+    <marquee id="announcementText" direction="up" behavior="scroll" scrollamount="2">
+      <!-- 这里将显示公告 -->
+    </marquee>
+    <div id="i">
+      <img width="50px" height="50px" src="https://github.com/lingken1028/project/blob/main/laba.png?raw=true">
+    </div>
+  </div>
+  
+  
+  
+  <div id="floorContainer">
+    <img class="floor-plan" id="floor1" src="https://github.com/lingken1028/project/blob/main/1.jpg?raw=true" alt="1楼平面图">
+    <img class="floor-plan" id="floor2" src="https://github.com/lingken1028/project/blob/main/2.jpg?raw=true" alt="2楼平面图">
+    <img class="floor-plan" id="floor3" src="https://github.com/lingken1028/project/blob/main/3.jpg?raw=true" alt="3楼平面图">
+    <img class="floor-plan" id="floor4" src="https://github.com/lingken1028/project/blob/main/4.jpg?raw=true" alt="4楼平面图">
+    <img class="floor-plan" id="floor5" src="https://github.com/lingken1028/project/blob/main/5.jpg?raw=true" alt="5楼平面图">
+    <img class="floor-plan" id="floor6" src="https://github.com/lingken1028/project/blob/main/6.jpg?raw=true" alt="6楼平面图">
+    <span class="s">
+      <div id="toilet1" style="left: 10%; top:12%;" ></div>
+      <div id="toilet2" style="right: 9.8%; top:17%;"></div>
+      <div id="toilet3" style="left: 10%; top:12%;"></div>
+      <div id="toilet4" style="right: 14.5%; top:17%;"></div>
+      <div id="toilet5" style="right: 9.8%; top:17%;"></div>
+      <div id="toilet6" style="left: 10%; top:12%;"></div>
+      <div id="toilet7" style="right: 14.5%; top:17%;"></div>
+      <div id="toilet8" style="right: 9.8%; top:17%;"></div>
+      <div id="toilet9" style="left:10%; top:12%;"></div>
+      <div id="toilet10" style="right: 14%; top:17%;"></div>
+      <div id="toilet11" style="right: 9.3%; top:17%;"></div>
+      <div id="toilet12" style="left: 10%; top:12%;"></div>
+      <div id="toilet13" style="right: 14.5%; top:17%;"></div>
+      <div id="toilet14" style="right: 9.8%; top:17%;"></div>
+      <div id="toilet15" style="left: 10.5%; top:12%;"></div>
+      <div id="floors1" ></div>
+      <div id="floors2" ></div>
+      <div id="floors3" ></div>
+      <div id="floors4" ></div>
+      <div id="floors5" ></div>
+      <div id="floors6" ></div>
+    </span>
+    
+  </div>
+  <div id="a1">
+    <a >卫生纸状态颜色</a><br>
+    <br>
+    <a >10成以下</a><br>
+    <div id="button12" style="background-color:rgba(188, 241, 203, 1); "><button style="background-color:rgba(188, 241, 203, 1); "></button></div><br>
+    <a>7成以下</a><br>
+    <div id="button12" style="background-color:rgba(188, 204, 241, 1); "><button style="background-color:rgba(188, 204, 241, 1); "></button></div><br>
+    <a>3成以下</a><br>
+    <div id="button12" style="background-color:rgba(241, 188, 238, 1); "><button style="background-color:rgba(241, 188, 238, 1); "></button></div><br>
+    <a>1成以下</a><br>
+    <div id="button12" style="background-color:rgba(255, 0, 0, 1); "><button style="background-color:rgba(255, 0, 0, 1);"></button></div><br>
+    <a>故障</a>
+    <div id="button12" style="background-color:rgba(128, 128, 128, 1);"><button style="background-color:rgba(128, 128, 128, 1);"></button></div><br>
+  </div>
+  <div id="floorSelector">
+    <button data-floor="1">1楼</button>
+    <button data-floor="2">2楼</button>
+    <button data-floor="3">3楼</button>
+    <button data-floor="4">4楼</button>
+    <button data-floor="5">5楼</button>
+    <button data-floor="6">6楼</button>
+  </div>
+  <script>
+    
+  </script>
+</body>
+</html>
